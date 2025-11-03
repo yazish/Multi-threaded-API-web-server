@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html><head>
+            <meta charset="UTF-8">
+            <title>Assignment 2: Multi-threaded API web server</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+<style>
+  .vscode-dark pre {
+      background-color: #000000cc !important;
+      border-radius: 3px;
+      padding: 3px;
+  }
+
+  pre>code {
+      margin: 5px;
+      display: block;
+      color: white;
+  }
+
+  .hljs-punctuation {
+      color: #d29922;
+  }
+</style>      
+        </head><body class="vscode-body vscode-dark"><h1 id="assignment-2-multi-threaded-api-web-server">Assignment 2: Multi-threaded API web server</h1>
+<p><strong>COMP 3010 - Fall 2025</strong></p>
+<p><strong>Kristina Zapp &amp; Zach Havens</strong></p>
+<ul>
+<li>Remember to complete the Honesty Declaration in UMLearn</li>
+<li>As a reminder, copying material (text or code) is plagiarism and academic dishonesty (see the Science links in the ROASS page for details on what constitutes academic dishonesty in written/research work).</li>
+<li>You must use socket libraries directly to do this assignment. Open a socket, listen to it, reply accordingly. No higher-level libraries are permitted.</li>
+<li>You may write this in any language you choose, but the code must compile (if relevant) and run on the aviary machines.</li>
+</ul>
+<h2 id="part-1-api-web-server-and-spa-web-client">Part 1: API Web server and SPA Web Client</h2>
+<p>Create a <strong>multi-threaded</strong> web server that serves dynamic content. Specifically, a website that uses Javascript to populate and post to a simple message board.</p>
+<p>Your frontend is a "single page application" (SPA) that should not refresh. All requests for data, login, and creation of new posts must be done using Javascript's XMLHttpRequest tool.</p>
+<blockquote>
+<p>Hint: don't use "on submit" features on forms - they refresh the page (or fetch a new page).</p>
+</blockquote>
+<p>Login is done by a simple username/password authentication. A user should be allowed to register with a username, and password, after which they should be returned to a form so that they can then log in. On revisiting the site (or on a refresh), the user should stay logged in as that user until they log out. (No need to time sessions out.)</p>
+<p>There are three types of paths your server must host to support the SPA:</p>
+<ul>
+<li>Path that is <code>/</code> you should serve your "index" page that has the HTML skeleton and Javascript code that populates the content. This page is static content.</li>
+<li>Paths that are prefixes with <code>/api/</code> are API calls that run code.</li>
+<li>If the path is <em>not</em> <code>/api/</code>, it should check the file system for files to share (images, html files, javascript).</li>
+<li>If the file or API paths do not exist, or have problems, appropriate error messages should be returned.
+<ul>
+<li>Your application should not crash, and <em>always</em> provide <em>a</em> response, even if it is an error code.</li>
+</ul>
+</li>
+</ul>
+<p>The client has to be able to get new messages from the server, and should use polling to do so. An example of how to do this will be provided.</p>
+<p>We will test your site on Google Chrome, but it is still a good idea to ensure that your application works with different browsers.</p>
+<blockquote>
+<p>Hint: it will likely make your life a lot easier to handle all state in your server as you build and test your webapp, then work on the DB integration described below!</p>
+</blockquote>
+<h3 id="suggested-api-paths">Suggested API paths</h3>
+<ul>
+<li><code>GET /api/messages</code> - get a list of all messages (optional, depending on how you write your program)</li>
+<li><code>GET /api/messages?last=xxxxxx</code> - get a list of all messages after this value. The sample solution uses a UNIX time, you can use an ID, or anything else to limit the number of messages returned.</li>
+<li><code>POST /api/messages</code> - create a new message on the server. This message will have a body that is json.</li>
+<li><code>POST /api/login</code> - Log into the system, return a 200, and sets cookies (no persistent storage on the server)</li>
+<li><code>DELETE /api/login</code> - Log out of the system (which does nothing for the server, but has a meaningful reply)</li>
+<li><code>POST /api/user</code> - Create new user with given information</li>
+</ul>
+<p>Only users that are logged in (with cookies) should be able to do anything with messages (view, post). Cookies should be set to <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#httponly"><code>httponly</code></a>. Your XHR requests require <a href="https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/withCredentials"><code>withCredentials</code></a> to send the cookies along.</p>
+<p>You can expand on these routes if you see fit! For instance <code>GET /api/login</code> to see if you are logged in and return a user name might be useful.</p>
+<h3 id="bonus-5">Bonus +5%</h3>
+<p>Implement the route</p>
+<ul>
+<li><code>DELETE /api/messages/[message-id]</code> - Delete message <code>message-id</code></li>
+</ul>
+<p>You should only be able to delete messages that you (have the same user name as...)</p>
+<p>There should be buttons on the frontend to complete these tasks, and the frontend should update/react appropriately. These also must be done with XHR (no page refreshes allowed here either!).</p>
+<p>No part marks! Make a note in your README if you have completed these tasks.</p>
+<h2 id="part-2-database-api">Part 2: Database API</h2>
+<h3 id="message-format">Message Format</h3>
+<p>You will all be interacting with one of several different database instances managed by the instructors through a custom API. This API uses TCP messages to exchange JSON-formatted request and response data. To ensure that all data is properly received, <strong>the first four bytes of any message must indicate the length of the JSON string that follows (including newlines", etc.) as an unsigned, big-endian binary integer.</strong></p>
+<p>For example, sending the JSON string <code>{"method" = "GetMessages"}</code>, with a length of 20, would require that the first two bytes of the TCP message to be <code>0x00 0x00 0x00 0x1A</code>, and the rest to be the ASCII encoded JSON string.</p>
+<p>You need to use this format when sending requests to the server, and should expect the server to send you responses in the same way.</p>
+<blockquote>
+<p>Hint: In Python, you can use the <code>int.to_bytes()</code> and <code>int.from_bytes()</code> methods for this purpose.</p>
+</blockquote>
+<h3 id="status-codes-and-error-messages">Status Codes and Error Messages</h3>
+<p>Every JSON response data sent by the database layer will contain (at the very least) a <code>status</code> field containing an integer status code. 0 indicates a success, non-zero indicates some sort of error. If the status is non-zero, there will also be an <code>error</code> string field with a simple description of the error.</p>
+<blockquote>
+<p><em>Note: Any similarity between DB status codes and HTTP status codes is pure coincidence.</em></p>
+</blockquote>
+<h3 id="ratedata-limiting">Rate/Data Limiting</h3>
+<p>The database may attempt to do some rate limiting if it is receiving too many requests. If you get <code>271</code> as a status code in any given response, please ensure that your web server backs off for some amount of time before sending subsequent requests. (Waiting 1 second is fine, but you do need to consider that you may have multiple threads!)</p>
+<p>The database may also limit the amount of data that it stores in order to minimize disk space and message size. This means that messages <em>or users</em> may be removed after some period of time if they are old or not recently used. You are not expected to do any caching of data on your web server or perform any sophisticated logic around messages that may or may not have been dropped by the database.</p>
+<h3 id="user-auth">User Auth</h3>
+<p>The database will neither authenticate nor authorize actions related to a given user. Authentication needs to be done by your web server, as does any validation around whether a user can delete a message.</p>
+<h3 id="database-instances">Database Instances</h3>
+<p>Multiple database instances will be running at all times on separate aviary hosts, accessible via port <code>50042</code>. (The specific hosts can be found below.) <em>These instances are independent</em> and do not synchronize data between them. Changing your web servers to connect to a different database may result in different responses to the same requests. Your web server should take a database hostname as a command-line argument when it run to point it at a specific instance. You do not need to perform any failover to a secondary instance if the primary instance your web server is communicating with is unavailable. (Though this is an interesting problem that you should consider how you might solve!)</p>
+<p>There is also no load balancing between any of these instances. While they will attempt to do some rate limiting as mentioned above, poorly-behaved client may cause degraded service on one or more of the instances. <strong>Please respect everyone's time and ability to make progress on this assignment by ensuring that your code is a good client!</strong> If there is any egregious misuse of these resources while working on the assignment, we reserve the right to deduct marks from your assignment grade.</p>
+<table border="1" style="border-collapse: collapse; width: 26.7071%; height: 144.653px; border: 2px solid #000000;"><colgroup><col style="width: 100%;"></colgroup>
+<tbody>
+<tr style="height: 35px;">
+<td style="border-width: 2px; border-color: #000000;"><strong>Instances</strong></td>
+</tr>
+<tr style="height: 35px;">
+<td style="border-width: 2px; border-color: #000000;">hawk.cs.umanitoba.ca:50042</td>
+</tr>
+<tr style="height: 35px;">
+<td style="border-width: 2px; border-color: #000000;">falcon.cs.umanitoba.ca:50042</td>
+</tr>
+<tr style="height: 39px;">
+<td style="border-width: 2px; border-color: #000000;">cormorant.cs.umanitoba.ca:50042</td>
+</tr>
+</tbody>
+</table>
+<h3 id="api-methods">API Methods</h3>
+<p>Each of the API methods available are described below, with examples of properly formatted of requests and responses.</p>
+<h4 id="getuser-method">GetUser Method</h4>
+<p>Gets information about a user.</p>
+<p>Request:</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">"method"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"GetUser"</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">"user"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"&lt;username&gt;"</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p>Response:</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">"method"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"GetUser"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"status"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"user"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">"user"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"&lt;username&gt;"</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">"pass"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"&lt;password&gt;"</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1234</span>
+  <span class="hljs-punctuation">}</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<h4 id="adduser-method">AddUser Method</h4>
+<p>Adds a new user to the database.</p>
+<p>Request:</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">"method"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"AddUser"</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">"user"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"&lt;username&gt;"</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">"pass"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"&lt;password&gt;"</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p>Response:</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">"method"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"AddUser"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"status"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"user"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">"user"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"&lt;username&gt;"</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">"pass"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"&lt;password&gt;"</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1234</span>
+  <span class="hljs-punctuation">}</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<h4 id="getmessages">GetMessages</h4>
+<p>Get a list of all recent messages from the database. The <code>time</code> field is an integer number of nanoseconds since the epoch.</p>
+<p>Request:</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">"method"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"GetMessages"</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p>Response:</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">"method"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"GetMessages"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"status"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"msgs"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+    <span class="hljs-punctuation">{</span>
+      <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">9832</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"time"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1761019462156727100</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"author"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"&lt;username&gt;"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"msg"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"Message 1 text."</span>
+&nbsp; &nbsp; <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-punctuation">{</span>
+      <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">9833</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"time"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1761019462126075000</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"author"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"&lt;username&gt;"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"msg"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"Message 2 text."</span>
+&nbsp; &nbsp; <span class="hljs-punctuation">}</span>
+&nbsp; <span class="hljs-punctuation">]</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<h4 id="newmessage">NewMessage</h4>
+<p>Adds a new message to the database. <code>time</code> as an integer number of nanoseconds since the epoch.</p>
+<p>Request:</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">"method"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"NewMessage"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"author"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"&lt;username&gt;"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"msg"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"New message text."</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p>Response:</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">"method"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"NewMessage"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"status"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">9832</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<h4 id="deletemessage">DeleteMessage</h4>
+<p>Deletes a message from the database.</p>
+<p>Request:</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">"method"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"DeleteMessage",</span>
+&nbsp; <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">9832</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p>Response:</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">"method"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"DeleteMessage"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"status"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<h2 id="permitted-libraries">Permitted Libraries</h2>
+<p>These are the libraries I used to complete the assignment. If you want to use a library that is not on this list, ask in the discussion forum.</p>
+<pre><code class="language-python"><span class="hljs-keyword">import</span> socket
+<span class="hljs-keyword">import</span> select
+<span class="hljs-keyword">import</span> argparse
+<span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">import</span> os
+<span class="hljs-keyword">import</span> re        <span class="hljs-comment"># good for matching things!</span>
+<span class="hljs-keyword">import</span> uuid      <span class="hljs-comment"># unique ID stuff</span>
+<span class="hljs-keyword">import</span> json
+<span class="hljs-keyword">import</span> tempfile  <span class="hljs-comment"># unique ID stuff</span>
+<span class="hljs-keyword">import</span> time      <span class="hljs-comment"># for timeouts</span>
+<span class="hljs-keyword">import</span> pytz      <span class="hljs-comment"># not really needed!</span>
+<span class="hljs-keyword">import</span> random    <span class="hljs-comment"># unique ID stuff (but a bad one), or load balancing</span>
+<span class="hljs-keyword">import</span> traceback <span class="hljs-comment"># helpful for debugging! Though you should probably pull this out before you submit</span>
+<span class="hljs-keyword">import</span> threading
+</code></pre>
+<h2 id="handin">Handin</h2>
+<p>Hand in your code, with an associated <code>README.md</code>. Explain how to run your code - possibly including port numbers we should expect, and highlight any oddities in your progress.</p>
+<p>Using <code>handin</code>: assuming you have a folder named <code>my_assignment_2_folder</code>. Go to its parent folder (so you can see <code>my_assignment_2_folder</code> in <code>ls</code>) and run <code>handin 3010 fall2025_a2 my_assignment_2_folder</code></p></body></html>
