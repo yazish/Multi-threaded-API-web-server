@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>COMP 3010 Message Board</title>
+    <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+    <div class="app">
+        <header>
+            <h1>COMP 3010 Message Board</h1>
+            <p class="tagline">Multi-threaded API powered SPA</p>
+        </header>
+
+        <section id="auth-section" class="card">
+            <h2>Account</h2>
+            <div id="auth-forms">
+                <form id="login-form" autocomplete="off">
+                    <h3>Log in</h3>
+                    <label>
+                        Username
+                        <input type="text" name="username" required />
+                    </label>
+                    <label>
+                        Password
+                        <input type="password" name="password" required />
+                    </label>
+                    <button type="submit">Log in</button>
+                </form>
+
+                <form id="register-form" autocomplete="off">
+                    <h3>Create account</h3>
+                    <label>
+                        Username
+                        <input type="text" name="username" required />
+                    </label>
+                    <label>
+                        Password
+                        <input type="password" name="password" required />
+                    </label>
+                    <button type="submit">Register</button>
+                </form>
+            </div>
+            <div id="session-info" class="hidden">
+                <p class="welcome">Signed in as <span id="session-username"></span></p>
+                <button id="logout-button" type="button">Log out</button>
+            </div>
+            <p id="auth-status" class="status"></p>
+        </section>
+
+        <section id="composer" class="card hidden">
+            <h2>New message</h2>
+            <form id="message-form" autocomplete="off">
+                <label>
+                    Message
+                    <textarea name="message" rows="4" maxlength="280" required></textarea>
+                </label>
+                <button type="submit">Post message</button>
+            </form>
+            <p id="message-status" class="status"></p>
+        </section>
+
+        <section id="messages" class="card hidden">
+            <h2>Latest messages</h2>
+            <div id="message-list" class="message-list"></div>
+            <p id="messages-status" class="status"></p>
+        </section>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>
